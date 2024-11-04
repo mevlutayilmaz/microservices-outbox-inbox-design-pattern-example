@@ -48,6 +48,7 @@ app.MapPost("/create-order", async (CreateOrderVM model, OrderDbContext orderDbC
     await orderDbContext.Orders.AddAsync(order);
     await orderDbContext.SaveChangesAsync();
 
+    Guid idempotentToken = Guid.NewGuid();
     OrderCreatedEvent orderCreatedEvent = new()
     {
         BuyerId = order.BuyerId,
@@ -59,6 +60,7 @@ app.MapPost("/create-order", async (CreateOrderVM model, OrderDbContext orderDbC
             Count = oi.Count,
             ProductId = oi.ProductId
         }).ToList(),
+        IdempotentToken = idempotentToken,
     };
     //var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.Stock_OrderCreatedEvent}"));
     //await sendEndpoint.Send(orderCreatedEvent);
@@ -68,7 +70,8 @@ app.MapPost("/create-order", async (CreateOrderVM model, OrderDbContext orderDbC
         OccuredOn = DateTime.UtcNow,
         ProcessedDate = null,
         Payload = JsonSerializer.Serialize(orderCreatedEvent),
-        Type = orderCreatedEvent.GetType().Name
+        Type = orderCreatedEvent.GetType().Name,
+        IdempotentToken = idempotentToken
     };
     await orderDbContext.OrderOutboxes.AddAsync(orderOutbox);
     await orderDbContext.SaveChangesAsync();

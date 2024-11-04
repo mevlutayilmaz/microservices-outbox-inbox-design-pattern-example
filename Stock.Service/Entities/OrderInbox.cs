@@ -8,7 +8,7 @@ namespace Stock.Service.Entities
 {
     public class OrderInbox
     {
-        public Guid Id { get; set; }
+        public Guid IdempotentToken { get; set; }
         public bool Processed { get; set; }
         public string Payload { get; set; }
     }

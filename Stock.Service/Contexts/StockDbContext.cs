@@ -15,5 +15,10 @@ namespace Stock.Service.Contexts
         }
 
         public DbSet<OrderInbox> OrderInboxes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<OrderInbox>().HasKey(o => o.IdempotentToken);
+        }
     }
 }
